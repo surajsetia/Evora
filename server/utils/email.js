@@ -4,28 +4,31 @@ const dns = require("dns");
 
 dotenv.config();
 
-// Force IPv4 instead of IPv6
+// Force IPv4
 dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
+  service: "gmail",
 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
+  family: 4,
+
+  connectionTimeout: 60000,
+  greetingTimeout: 60000,
+  socketTimeout: 60000,
+
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
   try {
-    await transporter.sendMail({
+    const mailOptions = {
       from: process.env.EMAIL_USER,
       to: userEmail,
       subject: `Booking Confirmed: ${eventTitle}`,
@@ -34,8 +37,9 @@ const sendBookingEmail = async (userEmail, userName, eventTitle) => {
         <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
         <p>Thank you for choosing Evora.</p>
       `,
-    });
+    };
 
+    await transporter.sendMail(mailOptions);
     console.log("Email sent successfully to", userEmail);
   } catch (error) {
     console.error("Booking Email Error:", error);
@@ -54,7 +58,7 @@ const sendOtpEmail = async (userEmail, otp, type) => {
         ? "Please use the following OTP to verify your new Evora account."
         : "Please use the following OTP to verify and confirm your event booking.";
 
-    await transporter.sendMail({
+    const mailOptions = {
       from: process.env.EMAIL_USER,
       to: userEmail,
       subject: title,
@@ -81,8 +85,9 @@ const sendOtpEmail = async (userEmail, otp, type) => {
           </p>
         </div>
       `,
-    });
+    };
 
+    await transporter.sendMail(mailOptions);
     console.log(`OTP sent to ${userEmail}`);
   } catch (error) {
     console.error("OTP Email Error:", error);
