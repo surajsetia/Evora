@@ -1,43 +1,28 @@
-const nodemailer = require("nodemailer");
-const dotenv = require("dotenv");
-const dns = require("dns");
+const SibApiV3Sdk = require("sib-api-v3-sdk");
 
-dotenv.config();
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
 
-// Force IPv4
-dns.setDefaultResultOrder("ipv4first");
+defaultClient.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
 
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP VERIFY ERROR:", error);
-  } else {
-    console.log("SMTP SERVER READY");
-  }
-});
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
   try {
-    const mailOptions = {
-      from: `"Evora" <${process.env.SMTP_USER}>`,
-      to: userEmail,
+    await apiInstance.sendTransacEmail({
+      sender: {
+        email: "noreply@evora.com",
+        name: "Evora",
+      },
+      to: [{ email: userEmail }],
       subject: `Booking Confirmed: ${eventTitle}`,
-      html: `
+      htmlContent: `
         <h2>Hi ${userName}!</h2>
         <p>Your booking for the event <strong>${eventTitle}</strong> is successfully confirmed.</p>
         <p>Thank you for choosing Evora.</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully to", userEmail);
+    console.log("Booking email sent");
   } catch (error) {
     console.error("Booking Email Error:", error);
   }
@@ -55,11 +40,14 @@ const sendOtpEmail = async (userEmail, otp, type) => {
         ? "Please use the following OTP to verify your new Evora account."
         : "Please use the following OTP to verify and confirm your event booking.";
 
-    const mailOptions = {
-      from: `"Evora" <${process.env.SMTP_USER}>`,
-      to: userEmail,
+    await apiInstance.sendTransacEmail({
+      sender: {
+        email: "surajsetia1304@gmail.com",
+        name: "Evora",
+      },
+      to: [{ email: userEmail }],
       subject: title,
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; text-align:center; padding:20px;">
           <h2>${title}</h2>
           <p>${msg}</p>
@@ -82,9 +70,8 @@ const sendOtpEmail = async (userEmail, otp, type) => {
           </p>
         </div>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
     console.log(`OTP sent to ${userEmail}`);
   } catch (error) {
     console.error("OTP Email Error:", error);
