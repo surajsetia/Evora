@@ -8,28 +8,19 @@ dotenv.config();
 dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-
-  family: 4,
-
-  connectionTimeout: 60000,
-  greetingTimeout: 60000,
-  socketTimeout: 60000,
-
-  tls: {
-    rejectUnauthorized: false,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
 const sendBookingEmail = async (userEmail, userName, eventTitle) => {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Evora" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: `Booking Confirmed: ${eventTitle}`,
       html: `
@@ -59,7 +50,7 @@ const sendOtpEmail = async (userEmail, otp, type) => {
         : "Please use the following OTP to verify and confirm your event booking.";
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: `"Evora" <${process.env.SMTP_USER}>`,
       to: userEmail,
       subject: title,
       html: `
