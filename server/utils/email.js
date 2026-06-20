@@ -10,7 +10,7 @@ const sendBookingEmail = async (userEmail, userName, eventTitle) => {
   try {
     await apiInstance.sendTransacEmail({
       sender: {
-        email: "noreply@evora.com",
+        email: "surajsetia1304@gmail.com",
         name: "Evora",
       },
       to: [{ email: userEmail }],
